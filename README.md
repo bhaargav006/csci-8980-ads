@@ -1,1 +1,1 @@
-# csci-8980-ads
+# CSCI 8980 - Project
