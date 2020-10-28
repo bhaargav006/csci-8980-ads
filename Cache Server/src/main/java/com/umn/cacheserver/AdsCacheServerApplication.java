@@ -1,13 +1,13 @@
-package com.umn.adscontroller;
+package com.umn.cacheserver;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class AdsControllerApplication {
+public class AdsCacheServerApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(AdsControllerApplication.class, args);
+        SpringApplication.run(AdsCacheServerApplication.class, args);
     }
 
 }
