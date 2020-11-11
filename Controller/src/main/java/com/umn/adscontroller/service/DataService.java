@@ -47,6 +47,6 @@ public class DataService {
             hashValue = (hashValue + (c - 'a' + 1) * pPow) % m;
             pPow = (pPow * p) % m;
         }
-        return (int) hashValue % 3;
+        return (int) hashValue % arrayOfStrings.length;
     }
 }
