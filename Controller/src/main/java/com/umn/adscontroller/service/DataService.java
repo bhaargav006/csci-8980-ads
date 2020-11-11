@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
+
 @Service
 public class DataService {
 
@@ -16,22 +18,22 @@ public class DataService {
     }
 
     @Value("${controller.server.list}")
-    private String[] arrayOfStrings;
+    private List<String> arrayOfStrings;
 
 
     public String getData(String inputKey) {
         int serverId = computeHash(inputKey);
 
-        String baseUrl = arrayOfStrings[serverId];
+        String baseUrl = arrayOfStrings.get(serverId);
         String url = String.format("http://%s/api/%s", baseUrl, inputKey);
-
+        
         return restTemplate.getForObject(url, String.class);
     }
 
     public void putData(String inputKey, String inputValue) {
         int serverId = computeHash(inputKey);
 
-        String baseUrl = arrayOfStrings[serverId];
+        String baseUrl = arrayOfStrings.get(serverId);
         String url = String.format("http://%s/api/%s", baseUrl, inputKey);
 
         restTemplate.put(url, inputValue);
@@ -44,9 +46,14 @@ public class DataService {
         double pPow = 1;
 
         for (char c : inputKey.toCharArray()) {
-            hashValue = (hashValue + (c - 'a' + 1) * pPow) % m;
+            hashValue = (hashValue + c * pPow) % m;
             pPow = (pPow * p) % m;
         }
-        return (int) hashValue % arrayOfStrings.length;
+
+        System.out.println(hashValue);
+        System.out.println(arrayOfStrings.size());
+        System.out.println(hashValue % arrayOfStrings.size());
+
+        return (int) hashValue % arrayOfStrings.size();
     }
 }
