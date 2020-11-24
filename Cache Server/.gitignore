@@ -4,6 +4,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 *.log
+*.DS_Store
+
 
 ### STS ###
 .apt_generated
@@ -19,6 +21,7 @@ target/
 *.iws
 *.iml
 *.ipr
+*.idea
 
 ### NetBeans ###
 /nbproject/private/
