@@ -3,9 +3,13 @@ package com.umn.cacheserver.service;
 import com.umn.cacheserver.model.Cache;
 import com.umn.cacheserver.model.CacheData;
 import com.umn.cacheserver.model.CacheEntry;
+import com.umn.cacheserver.policy.EvictionPolicy;
+import com.umn.cacheserver.policy.LFU;
+import com.umn.cacheserver.policy.LRU;
 import com.umn.cacheserver.repository.CacheDataRepository;
 import javafx.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -14,11 +18,14 @@ import java.util.Optional;
 @Service
 public class CacheService {
     private final CacheDataRepository cacheRepo;
+    private final String policy;
+    private EvictionPolicy evictionPolicy;
 
 
     @Autowired
-    CacheService(CacheDataRepository cacheRepo) {
+    CacheService(CacheDataRepository cacheRepo, @Value("${cache.policy}") String policy) {
         this.cacheRepo = cacheRepo;
+        this.policy = policy;
     }
 
     /**
@@ -65,9 +72,21 @@ public class CacheService {
     /**
      * Evicts the Cache based on chosen policy and return the index that was evicted.
      */
-    //TODO
     private String evict() {
-        return null;
+        switch (policy){
+            case "LRU" :
+                evictionPolicy = new LRU();
+                break;
+            case "LFU" :
+                evictionPolicy = new LFU();
+                break;
+            default :
+                System.out.println("Invalid Policy");
+                System.exit(0);
+        }
+        int index = evictionPolicy.evict();
+
+        return Cache.cache.get(index).getKey();
     }
 
     /**
