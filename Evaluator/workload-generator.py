@@ -48,7 +48,8 @@ for i in range(0, requests, args.rpf):
     reqs_to_generate = min(requests - i, args.rpf)
     print('Generating', reqs_to_generate, 'requests. Done', i, 'out of', requests)
 
-    ids = np.random.randint(0, number_of_names, size=reqs_to_generate)
+    ids = np.random.poisson(number_of_names/2, reqs_to_generate)
+    # ids = np.random.randInt(0, number_of_names, size=reqs_to_generate)
     
     timestamps = np.random.exponential(0.5, size=reqs_to_generate).astype(np.int)
     timestamps = stime + np.cumsum(timestamps)
@@ -71,6 +72,3 @@ for i in range(0, requests, args.rpf):
 
     file_counter += 1
     stime = max(timestamps)
-
-print(access_map[229])
-print(num_get, num_put)
