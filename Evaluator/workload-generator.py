@@ -1,5 +1,6 @@
 import argparse
 import os
+from sklearn.utils import shuffle
 from tqdm import tqdm
 
 parser = argparse.ArgumentParser(description='Simple data generator')
@@ -33,7 +34,9 @@ if not os.path.exists(out_path):
     os.makedirs(out_path)
 
 print('Generating sizes')
-names_size_mapping = np.random.poisson(size, size=number_of_names)
+p_names_size_mapping = np.random.poisson(size, size=number_of_names)
+l_names_size_mapping = np.random.logistic(loc=10, scale =1,size=number_of_names)
+names_size_mapping = p_names_size_mapping + l_names_size_mapping
 print(names_size_mapping)
 
 access_map = {}
