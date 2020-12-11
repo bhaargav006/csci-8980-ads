@@ -12,6 +12,7 @@ import javafx.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.sql.Timestamp;
 import java.util.Optional;
@@ -21,12 +22,15 @@ public class CacheService {
     private final CacheDataRepository cacheRepo;
     private final String policy;
     private EvictionPolicy evictionPolicy;
-
+    private RestTemplate restTemplate;
+    private String flaskURL;
 
     @Autowired
-    CacheService(CacheDataRepository cacheRepo, @Value("${cache.policy}") String policy) {
+    CacheService(CacheDataRepository cacheRepo, @Value("${cache.policy}") String policy, @Value("${flask.url}") String flaskURL, RestTemplate restTemplate) {
         this.cacheRepo = cacheRepo;
         this.policy = policy;
+        this.restTemplate = restTemplate;
+        this.flaskURL = flaskURL;
     }
 
     /**
@@ -76,7 +80,7 @@ public class CacheService {
     private String evict() {
         switch (policy){
             case "Learned" :
-                evictionPolicy = new LearnedEviction();
+                evictionPolicy = new LearnedEviction(restTemplate, flaskURL);
                 break;
             case "LRU" :
                 evictionPolicy = new LRU();
