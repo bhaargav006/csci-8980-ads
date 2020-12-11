@@ -19,9 +19,12 @@ public class DataController {
     }
 
     @GetMapping(value = "/{key}")
-    public Pair<String, Boolean> getData(@PathVariable("key") String inputKey) {
+    public ResponseEntity<Pair<String, Boolean>> getData(@PathVariable("key") String inputKey) {
         Pair<String, Boolean> value = cacheService.getValue(inputKey);
-        return value;
+        if (value == null){
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(value, HttpStatus.OK);
     }
 
     @PutMapping(value = "/{key}")
