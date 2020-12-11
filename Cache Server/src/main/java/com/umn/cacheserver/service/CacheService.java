@@ -37,9 +37,10 @@ public class CacheService {
      * Returns the value corresponding to the key
      */
     public synchronized Pair<String, Boolean> getValue(String key) {
-        return Optional.ofNullable(Cache.lookup.get(key))
-                .map(this::updateAndReturn)
-                .orElse(getPersistentValue(key));
+
+        if(Cache.lookup.get(key)!=null)
+            return updateAndReturn(Cache.lookup.get(key));
+        else return getPersistentValue(key);
     }
 
     /**
@@ -56,6 +57,11 @@ public class CacheService {
         }
     }
 
+    /**
+     * Calls evict, replaces the KV at the index returned by evict
+     * @param key
+     * @param value
+     */
     private synchronized void putNewEntry(String key, String value) {
         int ind;
 
@@ -119,12 +125,16 @@ public class CacheService {
      * Send the info to the learning module and returns the value of the entry
      */
     public Pair<String, Boolean> getPersistentValue(String key) {
-        String evictKey = evict();
-        int ind = Cache.lookup.get(evictKey);
+
 
         CacheData value = cacheRepo.findByKey(key);
-        //TODO replace the cache entry at ind
 
-        return new Pair<>(value.getValue(), false);
+        //TODO replace the cache entry at ind
+        if(value != null) {
+            putNewEntry(key, value.getValue());
+            return new Pair<>(value.getValue(), false);
+        }
+
+        return null;
     }
 }

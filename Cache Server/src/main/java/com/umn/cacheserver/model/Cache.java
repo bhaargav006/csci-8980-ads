@@ -21,6 +21,7 @@ public class Cache {
     public Cache(@Value("${cache.size}") final int cacheSize){
         cache = Collections.synchronizedList(new ArrayList<>(cacheSize));
         this.cacheSize = cacheSize;
+        lookup = new ConcurrentHashMap<String, Integer>();
     }
 
 }
