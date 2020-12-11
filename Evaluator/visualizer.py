@@ -1,5 +1,7 @@
-from collections import defaultdict, deque, Counter
+from matplotlib import pyplot as plt
+import csv
 import numpy as np
+from collections import defaultdict, deque, Counter
 from tqdm import tqdm_notebook as tqdm 
 import pandas as pd
 
@@ -46,6 +48,8 @@ def belady_opt(blocktrace, frame):
     #+1 is for label 0-1
     
     hit, miss = 0, 0
+
+    evicted_list = []
     
     # populate the block_index
     for i, block in enumerate(blocktrace):
@@ -53,6 +57,7 @@ def belady_opt(blocktrace, frame):
         
     # sequential block requests start
     for i, block in enumerate(blocktrace):
+        # print(block)
 
         # increament the frequency number for the block
         frequency[block] += 1
@@ -106,18 +111,19 @@ def belady_opt(blocktrace, frame):
                     
                     # find the farthest i.e. max_index in upcoming_index
                     max_index = max(upcoming_index)
-                    if (i % 100 +1 == 100):
-                        blockNo = np.array([i for i in Cache])
-                        blockNo = blockNo / np.linalg.norm(blockNo)
-                        recency_ = np.array([recency.index(i) for i in Cache])
-                        recency_ = recency_ / np.linalg.norm(recency_)
-                        frequency_ = np.array([frequency[i] for i in Cache])
-                        frequency_ = frequency_ / np.linalg.norm(frequency_)
-                        stack = np.column_stack((blockNo, recency_, frequency_)).reshape(1,frame*3)
+                    evicted_list.append(Cache.index(upcoming_index[max_index]))
+                    # if (i % 100 +1 == 100):
+                    #     blockNo = np.array([i for i in Cache])
+                    #     blockNo = blockNo / np.linalg.norm(blockNo)
+                    #     recency_ = np.array([recency.index(i) for i in Cache])
+                    #     recency_ = recency_ / np.linalg.norm(recency_)
+                    #     frequency_ = np.array([frequency[i] for i in Cache])
+                    #     frequency_ = frequency_ / np.linalg.norm(frequency_)
+                    #     stack = np.column_stack((blockNo, recency_, frequency_)).reshape(1,frame*3)
                         
-                        # print(upcoming_index[max_index])
-                        stack = np.append(stack, Cache.index(upcoming_index[max_index]))
-                        dataset = np.vstack((dataset, stack))
+                    #     # print(upcoming_index[max_index])
+                    #     stack = np.append(stack, Cache.index(upcoming_index[max_index]))
+                    #     dataset = np.vstack((dataset, stack))
                     # remove the block with max_index from cache
                     Cache.remove(upcoming_index[max_index])
                     
@@ -156,34 +162,53 @@ def belady_opt(blocktrace, frame):
     # calculate hitrate
     hitrate = hit / (hit + miss)
 
-    return hitrate, dataset
+    bins = np.arange(0, 99, 1)
+    Y_train = evicted_list
+    plt.xlim([min(Y_train), max(Y_train)])
+    plt.hist(Y_train, bins=bins, alpha=0.5)
+    plt.title('Histogram of eviction distribution')
+    plt.xlabel('Cache id')
+    plt.ylabel('count')
+    plt.show()
+    # calculate hitrate
+    hitrate = hit / (hit + miss)
+    print(hit)
+    print(miss)
+
+    return hitrate
+
+filename = "./data/currenttmp"
+blocktrace = []
+timestamp = []
+trace = []
+
+datadict = {}
+id = 0
+
+with open(filename) as f:
+    csv_reader = csv.reader(f, delimiter =" ")
+    for index, row in zip(range(60000), csv_reader) :        
+        if row[2] not in datadict:
+            datadict[row[2]] = id
+            id += 1
+        blocktrace.append(datadict[row[2]])
+        timestamp.append(int(row[0]))
+
+for i, block in enumerate(blocktrace):
+    trace.append(block)
+
+print(belady_opt(trace, 100))
 
 
-if __name__ == '__main__':
-	filename = "./../Evaluator/data/readworkload/0.csv"
-	blocktrace = []
-	with open(filename) as f:
-		csv_reader = csv.reader(f, delimiter =",")
-		for row in csv_reader:
-			blocktrace.append(int(row[1]))
-	hr, dataset = belady_opt(blocktrace, 100)
-
-	print(hr)
-
-	print(dataset.shape)
-	X_train, X_test, Y_train, Y_test = train_test_split(dataset[:,:-1], dataset[:,-1].astype(int), test_size=0.3, random_state=None, shuffle=True)
-
-	#Fitting Logistic Regression Model
-	NN= MLPClassifier(hidden_layer_sizes=(500, ), activation='tanh', batch_size= 100, random_state=1, max_iter=300)
-	NN.fit(X_train, Y_train)
-	#NN.fit(dataset[:,:-1], dataset[:,-1].astype(int))
-
-	Y_pred = NN.predict(X_test)
-
-	print('Accuracy of logistic regression classifier on test set: {:.2f}'.format(NN.score(X_test, Y_test)))
-	print('Accuracy of logistic regression classifier on train set: {:.2f}'.format(NN.score(X_train, Y_train)))
-
-	print(confusion_matrix(Y_test,Y_pred))
 
 
 
+# print(np.sort(np.unique(blocktrace)))
+# bins = np.sort(np.unique(blocktrace))
+# Y_train = trace
+# plt.xlim([min(Y_train), max(Y_train)])
+# plt.hist(Y_train, bins=bins, alpha=0.5)
+# plt.title('Histogram of data distribution')
+# plt.xlabel('Cache id')
+# plt.ylabel('count')
+# plt.show()
