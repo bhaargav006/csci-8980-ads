@@ -53,7 +53,7 @@ def belady_opt(blocktrace, frame):
         
     # sequential block requests start
     for i, block in enumerate(blocktrace):
-        # print(block)
+
         # increament the frequency number for the block
         frequency[block] += 1
         
@@ -169,7 +169,7 @@ if __name__ == '__main__':
 	hr, dataset = belady_opt(blocktrace, 100)
 
 	print(hr)
-	# print(dataset[0])
+
 	print(dataset.shape)
 	X_train, X_test, Y_train, Y_test = train_test_split(dataset[:,:-1], dataset[:,-1].astype(int), test_size=0.3, random_state=None, shuffle=True)
 
