@@ -3,11 +3,21 @@ package com.umn.cacheserver.policy;
 import com.umn.cacheserver.model.Cache;
 import com.umn.cacheserver.model.CacheEntry;
 import com.umn.cacheserver.model.DatasetEntry;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.client.RestTemplate;
 
 import java.sql.Timestamp;
 import java.util.*;
 
 public class LearnedEviction extends EvictionPolicy{
+
+    private RestTemplate restTemplate;
+    private String flaskURL;
+
+    public LearnedEviction(RestTemplate restTemplate, String flaskURL){
+        this.restTemplate = restTemplate;
+        this.flaskURL = flaskURL;
+    }
 
     /**
      *  Returns the index
@@ -25,8 +35,9 @@ public class LearnedEviction extends EvictionPolicy{
             index++;
         }
         DatasetEntry cacheSnapshot = new DatasetEntry(cacheValues, freqList, rankArr(timeArray));
-
-        return 0;
+        String url = String.format("http://%s/predict/eviction", flaskURL);
+        String ind = restTemplate.postForObject(url, cacheSnapshot, String.class);
+        return Integer.parseInt(ind);
     }
 
 
