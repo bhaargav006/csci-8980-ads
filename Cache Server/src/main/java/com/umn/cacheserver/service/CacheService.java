@@ -6,6 +6,7 @@ import com.umn.cacheserver.model.CacheEntry;
 import com.umn.cacheserver.policy.EvictionPolicy;
 import com.umn.cacheserver.policy.LFU;
 import com.umn.cacheserver.policy.LRU;
+import com.umn.cacheserver.policy.LearnedEviction;
 import com.umn.cacheserver.repository.CacheDataRepository;
 import javafx.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +75,9 @@ public class CacheService {
      */
     private String evict() {
         switch (policy){
+            case "Learned" :
+                evictionPolicy = new LearnedEviction();
+                break;
             case "LRU" :
                 evictionPolicy = new LRU();
                 break;
