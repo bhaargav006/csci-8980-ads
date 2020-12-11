@@ -30,12 +30,12 @@ import torch.optim as optim
 
 bp = Blueprint('train', __name__, url_prefix='/train')
 
-CACHE_SIZE= 100
 LR = 1e-4
 BATCH_SIZE= 32
 EPOCH = 30
 PATH1 = "CNN_2layer.pth"
 PATH2 = "MLP_2layer.pth"
+
 
 @bp.route('/')
 def index():
@@ -51,19 +51,16 @@ def index():
             timestamp.append(int(row[0]))
 
     current_app.logger.info('Running Belady')
-    hr, dataset = belady_opt(blocktrace, CACHE_SIZE)
-
-    outfile = open('blocktrace.txt', 'wb')
-    outfile.write(dataset)
+    hr, dataset = belady_opt(blocktrace, current_app.config['CACHE_SIZE'])
 
     current_app.logger.info('Spliting train and test data')
     X_train, X_test, Y_train, Y_test = train_test_split(dataset[:,:-1], dataset[:,-1].astype(int), test_size=0.3, random_state=None, shuffle=True)
 
-    print(X_test[0])
-
     # Fitting Logistic Regression Model
     current_app.logger.info('Building model')
-    NN = MLPClassifier(hidden_layer_sizes=(500, ), activation='tanh', batch_size= 100, random_state=1, max_iter=300)
+
+    if (current_app.config['MODEL_NAME'] == 'MLP'):
+        NN = MLPClassifier(hidden_layer_sizes=(500, ), activation='tanh', batch_size= 100, random_state=1, max_iter=300)
     NN.fit(X_train, Y_train)
 
     current_app.logger.info('Running evaluations')
@@ -71,7 +68,7 @@ def index():
     current_app.logger.info('Accuracy of logistic regression classifier on test set: {:.2f}'.format(NN.score(X_test, Y_test)))
     current_app.logger.info('Accuracy of logistic regression classifier on train set: {:.2f}'.format(NN.score(X_train, Y_train)))
     current_app.logger.info('Hit Rate from Belady: {:.2f}'.format(hr))
-    current_app.logger.info('Hit Rate: {:.2f}'.format(hitRate(blocktrace, CACHE_SIZE, NN)))
+    current_app.logger.info('Hit Rate: {:.2f}'.format(hitRate(blocktrace, current_app.config['CACHE_SIZE'], NN)))
 
     dump(NN, 'cachemodel.joblib')
 
@@ -118,6 +115,7 @@ def belady_opt(blocktrace, frame):
     for i, block in enumerate(blocktrace):
         block_index[block].append(i)
         
+    printed = False
     # sequential block requests start
     for i, block in enumerate(blocktrace):
         # increament the frequency number for the block
@@ -171,7 +169,7 @@ def belady_opt(blocktrace, frame):
                     
                     # find the farthest i.e. max_index in upcoming_index
                     max_index = max(upcoming_index)
-                    
+
                     if (i%100+1==100):
                         blockNo = np.array([i for i in Cache])
                         blockNo = blockNo / np.linalg.norm(blockNo)
