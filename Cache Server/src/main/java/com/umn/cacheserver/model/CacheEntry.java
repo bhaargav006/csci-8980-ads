@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 public class CacheEntry {
     String key;
     String value;
-    long frequency;
+    int frequency;
     Timestamp ts;
 
     public CacheEntry(){
@@ -26,7 +26,7 @@ public class CacheEntry {
         return key;
     }
 
-    public long getFrequency() {
+    public int getFrequency() {
         return frequency;
     }
 

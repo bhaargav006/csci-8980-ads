@@ -5,12 +5,13 @@ import com.umn.cacheserver.model.CacheEntry;
 
 import java.sql.Timestamp;
 
-public class LRU {
+public class LRU extends EvictionPolicy{
 
     /**
      * Returns the index of the entry that needs to be replaced.
      */
-    public int evictLRU(){
+    @Override
+    public int evict(){
         Timestamp min = Cache.cache.get(0).getTimestamp();
         int ind = 0;
         for(CacheEntry entry:Cache.cache){
