@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -27,7 +28,11 @@ public class DataService {
         String baseUrl = arrayOfStrings.get(serverId);
         String url = String.format("http://%s/api/%s", baseUrl, inputKey);
         
-        return restTemplate.getForObject(url, String.class);
+        try {
+            return restTemplate.getForObject(url, String.class);
+        } catch (HttpStatusCodeException exception) {
+            return null;
+        }
     }
 
     public void putData(String inputKey, String inputValue) {
@@ -49,10 +54,6 @@ public class DataService {
             hashValue = (hashValue + c * pPow) % m;
             pPow = (pPow * p) % m;
         }
-
-        System.out.println(hashValue);
-        System.out.println(arrayOfStrings.size());
-        System.out.println(hashValue % arrayOfStrings.size());
 
         return (int) hashValue % arrayOfStrings.size();
     }

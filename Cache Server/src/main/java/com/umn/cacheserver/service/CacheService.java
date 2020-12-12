@@ -37,8 +37,7 @@ public class CacheService {
      * Returns the value corresponding to the key
      */
     public synchronized Pair<String, Boolean> getValue(String key) {
-
-        if(Cache.lookup.get(key)!=null)
+        if (Cache.lookup.get(key) != null)
             return updateAndReturn(Cache.lookup.get(key));
         else return getPersistentValue(key);
     }
@@ -59,21 +58,27 @@ public class CacheService {
 
     /**
      * Calls evict, replaces the KV at the index returned by evict
+     *
      * @param key
      * @param value
      */
     private synchronized void putNewEntry(String key, String value) {
-        int ind;
+        int ind = -1;
 
         CacheEntry newEntry = new CacheEntry(key, value, new Timestamp(System.currentTimeMillis()));
 
         if (Cache.lookup.size() < Cache.cacheSize) {
             ind = Cache.lookup.size();
         } else {
-            String evictKey = evict();
-            ind = Cache.lookup.get(evictKey);
-            cacheRepo.save(new CacheData(evictKey, Cache.cache.get(ind).getValue()));
-            Cache.lookup.remove(Cache.cache.get(ind).getKey());
+            try {
+                ind = evict();
+                cacheRepo.save(new CacheData(Cache.cache.get(ind).getKey(), Cache.cache.get(ind).getValue()));
+                Cache.lookup.remove(Cache.cache.get(ind).getKey());
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                return;
+            }
         }
 
         Cache.cache.add(ind, newEntry);
@@ -83,31 +88,31 @@ public class CacheService {
     /**
      * Evicts the Cache based on chosen policy and return the index that was evicted.
      */
-    private String evict() {
-        switch (policy){
-            case "Learned" :
+    private int evict() {
+        switch (policy) {
+            case "Learned":
                 evictionPolicy = new LearnedEviction(restTemplate, flaskURL);
                 break;
-            case "LRU" :
+            case "LRU":
                 evictionPolicy = new LRU();
                 break;
-            case "LFU" :
+            case "LFU":
                 evictionPolicy = new LFU();
                 break;
-            default :
+            default:
                 System.out.println("Invalid Policy");
                 System.exit(0);
         }
-        int index = evictionPolicy.evict();
 
-        return Cache.cache.get(index).getKey();
+        int p = evictionPolicy.evict();
+        System.out.println("Evicting Index: " + p);
+        return p;
     }
 
     /**
      * Update the index and returns the value
      */
     private Pair<String, Boolean> updateAndReturn(int index) {
-
         CacheEntry entry = Cache.cache.get(index);
         updateCache(entry);
         return new Pair<>(entry.getValue(), true);
@@ -125,16 +130,12 @@ public class CacheService {
      * Send the info to the learning module and returns the value of the entry
      */
     public Pair<String, Boolean> getPersistentValue(String key) {
-
-
         CacheData value = cacheRepo.findByKey(key);
 
-        //TODO replace the cache entry at ind
-        if(value != null) {
+        if (value != null) {
             putNewEntry(key, value.getValue());
             return new Pair<>(value.getValue(), false);
         }
-
         return null;
     }
 }

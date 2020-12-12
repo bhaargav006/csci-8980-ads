@@ -34,10 +34,7 @@ if not os.path.exists(out_path):
     os.makedirs(out_path)
 
 print('Generating sizes')
-p_names_size_mapping = np.random.poisson(size, size=number_of_names)
-l_names_size_mapping = np.random.logistic(loc=10, scale =1,size=number_of_names)
-names_size_mapping = p_names_size_mapping + l_names_size_mapping
-print(names_size_mapping)
+names_size_mapping = np.random.poisson(size, size=number_of_names)
 
 access_map = {}
 
@@ -51,8 +48,12 @@ for i in range(0, requests, args.rpf):
     reqs_to_generate = min(requests - i, args.rpf)
     print('Generating', reqs_to_generate, 'requests. Done', i, 'out of', requests)
 
-    ids = np.random.poisson(number_of_names/2, reqs_to_generate)
-    # ids = np.random.randInt(0, number_of_names, size=reqs_to_generate)
+    # p_ids = np.random.poisson(int(number_of_names/2), int(reqs_to_generate/2))
+    # l_ids = np.random.logistic(loc=10, scale=1, size=int(reqs_to_generate/2))
+    # ids = np.concatenate((p_ids, l_ids), axis=None)
+    # ids = shuffle(ids)
+    
+    ids = np.random.randint(0, number_of_names, size=reqs_to_generate)
     
     timestamps = np.random.exponential(0.5, size=reqs_to_generate).astype(np.int)
     timestamps = stime + np.cumsum(timestamps)
@@ -70,8 +71,10 @@ for i in range(0, requests, args.rpf):
                 num_get += 1
             else:
                 num_put += 1
-            wstr = str(timestamps[j]) + ',' + str(ids[j]) + ',' + str(names_size_mapping[ids[j]]) + ',' + str(request_type) + '\n'
+            wstr = str(timestamps[j]) + ',' + str(int(ids[j])) + ',' + str(names_size_mapping[int(ids[j])]) + ',' + str(request_type) + '\n'
             f.write(wstr)
 
     file_counter += 1
     stime = max(timestamps)
+
+print(num_get, num_put)
