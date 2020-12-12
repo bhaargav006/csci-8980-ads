@@ -15,7 +15,7 @@ public class LRU extends EvictionPolicy {
         Timestamp min = Cache.cache.get(0).getTimestamp();
         int ind = 0;
         for (CacheEntry entry : Cache.cache) {
-            if (entry.getTimestamp().compareTo(min) < 0) {
+            if (entry.getTimestamp().before(min)) {
                 min = entry.getTimestamp();
                 ind = Cache.lookup.get(entry.getKey());
             }
