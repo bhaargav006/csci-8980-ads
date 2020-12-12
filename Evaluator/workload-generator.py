@@ -48,12 +48,13 @@ for i in range(0, requests, args.rpf):
     reqs_to_generate = min(requests - i, args.rpf)
     print('Generating', reqs_to_generate, 'requests. Done', i, 'out of', requests)
 
-    # p_ids = np.random.poisson(int(number_of_names/2), int(reqs_to_generate/2))
+    p_ids = np.random.poisson(int(number_of_names/2), int(reqs_to_generate/2))
+    l_ids = np.random.randint(0, number_of_names, size=reqs_to_generate)
     # l_ids = np.random.logistic(loc=10, scale=1, size=int(reqs_to_generate/2))
-    # ids = np.concatenate((p_ids, l_ids), axis=None)
-    # ids = shuffle(ids)
+    ids = np.concatenate((p_ids, l_ids), axis=None)
+    ids = shuffle(ids)
     
-    ids = np.random.randint(0, number_of_names, size=reqs_to_generate)
+    # ids = np.random.randint(0, number_of_names, size=reqs_to_generate)
     
     timestamps = np.random.exponential(0.5, size=reqs_to_generate).astype(np.int)
     timestamps = stime + np.cumsum(timestamps)
