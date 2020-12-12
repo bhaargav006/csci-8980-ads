@@ -48,9 +48,8 @@ public class CacheService {
     public synchronized void postValue(String key, String value) {
         // If key is present in the the cache
         if (Cache.lookup.get(key) != null) {
-            CacheEntry entry = Cache.cache.get(Cache.lookup.get(key));
-            updateCache(entry);
-            entry.setValue(value);
+            updateCache(Cache.cache.get(Cache.lookup.get(key)));
+            Cache.cache.get(Cache.lookup.get(key)).setValue(value);
         } else {
             putNewEntry(key, value);
         }
@@ -69,19 +68,18 @@ public class CacheService {
 
         if (Cache.lookup.size() < Cache.cacheSize) {
             ind = Cache.lookup.size();
+            Cache.cache.add(ind, newEntry);
         } else {
             try {
                 ind = evict();
                 cacheRepo.save(new CacheData(Cache.cache.get(ind).getKey(), Cache.cache.get(ind).getValue()));
                 Cache.lookup.remove(Cache.cache.get(ind).getKey());
+                Cache.cache.set(ind, newEntry);
             } catch (Exception e) {
                 e.printStackTrace();
-            } finally {
                 return;
             }
         }
-
-        Cache.cache.add(ind, newEntry);
         Cache.lookup.put(key, ind);
     }
 
@@ -113,9 +111,8 @@ public class CacheService {
      * Update the index and returns the value
      */
     private Pair<String, Boolean> updateAndReturn(int index) {
-        CacheEntry entry = Cache.cache.get(index);
-        updateCache(entry);
-        return new Pair<>(entry.getValue(), true);
+        updateCache(Cache.cache.get(index));
+        return new Pair<>(Cache.cache.get(index).getValue(), true);
     }
 
     /**
