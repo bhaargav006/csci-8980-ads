@@ -4,7 +4,7 @@ import argparse
 from os.path import isfile, join
 
 parser = argparse.ArgumentParser(description='Simple Metric Calculator')
-parser.add_argument('-w', '--workload', type=str, default=None, help="Path to log file")
+parser.add_argument('-p', '--path', type=str, default=None, help="Path to log file")
 
 args = parser.parse_args()
 
