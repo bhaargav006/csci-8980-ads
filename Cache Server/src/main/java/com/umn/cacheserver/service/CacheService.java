@@ -31,62 +31,7 @@ public class CacheService {
         this.policy = policy;
         this.restTemplate = restTemplate;
         this.flaskURL = flaskURL;
-    }
 
-    /**
-     * Returns the value corresponding to the key
-     */
-    public synchronized Pair<String, Boolean> getValue(String key) {
-        if (Cache.lookup.get(key) != null)
-            return updateAndReturn(Cache.lookup.get(key));
-        else return getPersistentValue(key);
-    }
-
-    /**
-     * Puts the K,V pair to the cache.
-     */
-    public synchronized void postValue(String key, String value) {
-        // If key is present in the the cache
-        if (Cache.lookup.get(key) != null) {
-            updateCache(Cache.cache.get(Cache.lookup.get(key)));
-            Cache.cache.get(Cache.lookup.get(key)).setValue(value);
-        } else {
-            putNewEntry(key, value);
-        }
-    }
-
-    /**
-     * Calls evict, replaces the KV at the index returned by evict
-     *
-     * @param key
-     * @param value
-     */
-    private synchronized void putNewEntry(String key, String value) {
-        int ind = -1;
-
-        CacheEntry newEntry = new CacheEntry(key, value, new Timestamp(System.currentTimeMillis()));
-
-        if (Cache.lookup.size() < Cache.cacheSize) {
-            ind = Cache.lookup.size();
-            Cache.cache.add(ind, newEntry);
-        } else {
-            try {
-                ind = evict();
-                cacheRepo.save(new CacheData(Cache.cache.get(ind).getKey(), Cache.cache.get(ind).getValue()));
-                Cache.lookup.remove(Cache.cache.get(ind).getKey());
-                Cache.cache.set(ind, newEntry);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return;
-            }
-        }
-        Cache.lookup.put(key, ind);
-    }
-
-    /**
-     * Evicts the Cache based on chosen policy and return the index that was evicted.
-     */
-    private int evict() {
         switch (policy) {
             case "Learned":
                 evictionPolicy = new LearnedEviction(restTemplate, flaskURL);
@@ -101,10 +46,55 @@ public class CacheService {
                 System.out.println("Invalid Policy");
                 System.exit(0);
         }
+    }
 
-        int p = evictionPolicy.evict();
-        System.out.println("Evicting Index: " + p);
-        return p;
+    /**
+     * Returns the value corresponding to the key
+     */
+    public synchronized Pair<String, Boolean> getValue(String key) {
+        if (Cache.lookup.get(key) != null)
+            return updateAndReturn(Cache.lookup.get(key));
+        else return getPersistentValue(key);
+    }
+
+    /**
+     * Puts the K,V pair to the cache.
+     */
+    public synchronized Pair<String, Boolean> postValue(String key, String value) {
+        // If key is present in the the cache
+        if (Cache.lookup.get(key) != null) {
+            updateCache(Cache.cache.get(Cache.lookup.get(key)));
+            Cache.cache.get(Cache.lookup.get(key)).setValue(value);
+            return new Pair<>(key, true);
+        } else {
+            putNewEntry(key, value);
+            return new Pair<>(key, false);
+        }
+    }
+
+    /**
+     * Calls evict, replaces the KV at the index returned by evict
+     */
+    private synchronized void putNewEntry(String key, String value) {
+        int ind = -1;
+
+        CacheEntry newEntry = new CacheEntry(key, value, new Timestamp(System.currentTimeMillis()));
+
+        if (Cache.lookup.size() < Cache.cacheSize) {
+            ind = Cache.lookup.size();
+            Cache.cache.add(ind, newEntry);
+        } else {
+            try {
+                ind = evictionPolicy.evict();
+                cacheRepo.save(new CacheData(Cache.cache.get(ind).getKey(), Cache.cache.get(ind).getValue()));
+                Cache.lookup.remove(Cache.cache.get(ind).getKey());
+                Cache.cache.set(ind, newEntry);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return;
+            }
+        }
+        Cache.lookup.put(key, ind);
     }
 
     /**

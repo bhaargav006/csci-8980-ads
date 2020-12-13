@@ -4,16 +4,28 @@ from flask import (
 from werkzeug.exceptions import abort
 from joblib import dump, load
 from flask import current_app
+
+import torch
 import numpy as np
+from torch import nn
+import torch.optim as optim
+import torch.nn.functional as F
+from torch.utils.data import Dataset, DataLoader
+from models.CNN2 import CNN2
 
 bp = Blueprint('predict', __name__, url_prefix='/predict')
-NN = load('cachemodel.joblib')
+
+MLP = load('MLP.joblib')
+
+LOGREG = load('LOGREG.joblib')
+
+CNN = CNN2()
+CNN.load_state_dict(torch.load('./models/CNN_2_1layer.pth', map_location='cpu'))
 
 @bp.route('/eviction', methods=['POST'])
 def index():
     if(request.data):
         inputTrace = request.get_json()
-        current_app.logger.info(inputTrace)
 
         blockNo = inputTrace['blockTrace']
         recency = inputTrace['recency']
@@ -29,4 +41,12 @@ def index():
     else:
         return 'Invalid Input'
 
-    return str(NN.predict(stack)[0])
+    if current_app.config['MODEL_NAME'] == 'MLP':
+        returnVal = str(MLP.predict(stack)[0])
+    else current_app.config['MODEL_NAME'] == 'LOGREG':
+        returnVal = str(LOGREG.predict(stack)[0])
+    elif current_app.config['MODEL_NAME'] == 'CNN':
+        index = CNN(torch.FloatTensor(stack))
+        returnVal = str(np.argsort(F.softmax(index.data[0]).numpy())[-1])
+
+    return returnVal

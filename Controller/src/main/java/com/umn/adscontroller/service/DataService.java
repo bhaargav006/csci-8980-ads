@@ -3,6 +3,8 @@ package com.umn.adscontroller.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
@@ -35,13 +37,13 @@ public class DataService {
         }
     }
 
-    public void putData(String inputKey, String inputValue) {
+    public String  putData(String inputKey, String inputValue) {
         int serverId = computeHash(inputKey);
 
         String baseUrl = arrayOfStrings.get(serverId);
         String url = String.format("http://%s/api/%s", baseUrl, inputKey);
 
-        restTemplate.put(url, inputValue);
+        return restTemplate.postForObject(url, inputValue, String.class);
     }
 
     private int computeHash(String inputKey) {

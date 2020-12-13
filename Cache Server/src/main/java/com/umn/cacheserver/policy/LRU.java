@@ -20,7 +20,6 @@ public class LRU extends EvictionPolicy {
                 ind = Cache.lookup.get(entry.getKey());
             }
         }
-        System.out.println("Returning: " + ind);
         return ind;
     }
 }

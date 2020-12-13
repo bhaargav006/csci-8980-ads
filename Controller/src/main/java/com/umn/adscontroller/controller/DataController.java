@@ -42,10 +42,12 @@ public class DataController {
     public ResponseEntity<String> putData(@PathVariable("key") String inputKey, @RequestBody String inputValue) {
         long startTime = System.nanoTime();
 
-        dataService.putData(inputKey, inputValue);
+        String value = dataService.putData(inputKey, inputValue);
+
+        JSONObject response = new JSONObject(value);
 
         long endTime = System.nanoTime();
-        apiLogger.info("PUT {} {}", inputKey, (endTime - startTime));
+        apiLogger.info("PUT {} {} {}", inputKey, (endTime - startTime), response.getBoolean("value"));
         return new ResponseEntity<String>(inputKey, HttpStatus.CREATED);
     }
 }

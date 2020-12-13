@@ -27,9 +27,9 @@ public class DataController {
         return new ResponseEntity<>(value, HttpStatus.OK);
     }
 
-    @PutMapping(value = "/{key}")
-    public ResponseEntity<String> putData(@PathVariable("key") String inputKey, @RequestBody String inputValue) {
-        cacheService.postValue(inputKey, inputValue);
-        return new ResponseEntity<String>(inputKey, HttpStatus.CREATED);
+    @PostMapping(value = "/{key}")
+    public ResponseEntity<Pair<String, Boolean>> putData(@PathVariable("key") String inputKey, @RequestBody String inputValue) {
+        Pair<String, Boolean> value = cacheService.postValue(inputKey, inputValue);
+        return new ResponseEntity<>(value, HttpStatus.CREATED);
     }
 }
