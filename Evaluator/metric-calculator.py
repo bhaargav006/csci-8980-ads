@@ -19,6 +19,7 @@ for filename in files:
     hit = 0
     miss = 0
     access_time = 0
+    putHit = 0
 
     # 6 21205000
     # 7 true
@@ -32,6 +33,10 @@ for filename in files:
         else :
             miss += 1
 
+        if values[4] == 'PUT' and values[7] == 'true':
+            putHit += 1
+            
+
     output = open("metric.txt", "a")  # append mode 
     output.write(path + '/' + filename + " \n") 
     output.write('Total number of requests: ' + str(requests) + "\n")
@@ -40,6 +45,7 @@ for filename in files:
     output.write('hit ratio: ' + str(hit / (hit + miss)) + "\n")
     output.write('access time in ns: ' + str(access_time) + "\n")
     output.write('access time in ms: ' + str(access_time/1000000) + "\n")
+    output.write('put hit: ' + str(putHit) + "\n")
     output.write('\n\n')
     output.close()
     logfile.close()

@@ -29,7 +29,7 @@ with tqdm(total=args.requests) as pbar:
             req_type = params[3]
             req_type = req_type.strip()
 
-            sleep(0.05)
+            sleep(0.01)
             if req_type == 'GET':
                 try:
                     requests.get(url + '/api/' + key)
