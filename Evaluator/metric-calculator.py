@@ -8,7 +8,7 @@ parser.add_argument('-p', '--path', type=str, default=None, help="Path to log fi
 
 args = parser.parse_args()
 
-path = str(args.workload)
+path = str(args.path)
 
 logfile = open(path, "r")
 requests = 0
