@@ -8,7 +8,7 @@ class ProductionConfig(Config):
 
 class DevelopmentConfig(Config):
     CACHE_SIZE = CACHE_SIZE_LIMIT
-    MODEL_NAME = 'MLP'
+    MODEL_NAME = 'CNN'
 
 class TestingConfig(Config):
     CACHE_SIZE = 100
