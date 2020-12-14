@@ -4,7 +4,7 @@ from flask import (
 from werkzeug.exceptions import abort
 from joblib import dump, load
 from collections import defaultdict, deque, Counter
-from tqdm as tqdm 
+from tqdm import tqdm 
 from flask import current_app
 import os
 import csv
@@ -163,11 +163,11 @@ def belady_opt(blocktrace, frame):
                     
                     # evict the farthest block in future request from cache
                     if len(upcoming_index) != 0:
-                        
+
                         # find the farthest i.e. max_index in upcoming_index
                         max_index = max(upcoming_index)
 
-                        if (i%100+1==100):
+                        if (i%10+1==10):
                             blockNo = np.array([i for i in Cache])
                             # blockNo = blockNo / np.linalg.norm(blockNo)
                             recency_ = np.array([recency.index(i) for i in Cache])
@@ -186,12 +186,12 @@ def belady_opt(blocktrace, frame):
                         
                         # remove max_index element from upcoming_index
                         del upcoming_index[max_index]
-                    else:
-                        # add block into Cache
-                        Cache.append(block)
+                else:
+                    # add block into Cache
+                    Cache.append(block)
                     
-                    # add block into recency
-                    recency.append(block)
+                # add block into recency
+                recency.append(block)
                         
                 # add upcoming request of current block in upcoming_index
                 if len(block_index[block]) != 0:
@@ -218,78 +218,78 @@ def belady_opt(blocktrace, frame):
     return hitrate, dataset
 
 def hitRate(blocktrace, frame, model):		
-'''		
-INPUT		
-==========		
-blocktrace = list of block request sequence		
-frame = size of the cache		
-        
-OUTPUT		
-==========		
-hitrate 		
-'''		
+    '''		
+    INPUT		
+    ==========		
+    blocktrace = list of block request sequence		
+    frame = size of the cache		
+            
+    OUTPUT		
+    ==========		
+    hitrate 		
+    '''		
 
-frequency = defaultdict(int)		
-# dictionary of block as key and number		
-# of times it's been requested so far		
+    frequency = defaultdict(int)		
+    # dictionary of block as key and number		
+    # of times it's been requested so far		
 
-recency = list()		
-# list of block in order of their request		
+    recency = list()		
+    # list of block in order of their request		
 
-Cache = []		
-# Cache with block		
+    Cache = []		
+    # Cache with block		
 
-hit, miss = 0, 0		
+    hit, miss = 0, 0		
 
-with tqdm(total=len(blocktrace)) as pbar:    	
-    # sequential block requests start		
-    for i, block in enumerate(blocktrace):		
-        # increament the frequency number for the block		
-        frequency[block] += 1		
+    with tqdm(total=len(blocktrace)) as pbar:    	
+        # sequential block requests start		
+        for i, block in enumerate(blocktrace):		
+            # increament the frequency number for the block		
+            frequency[block] += 1		
 
-        # if block exist in current cache		
-        if block in Cache:		
+            # if block exist in current cache		
+            if block in Cache:		
 
-            # increment hit		
-            hit += 1		
+                # increment hit		
+                hit += 1		
 
-            # update the recency		
-            recency.remove(block)		
-            recency.append(block)		
+                # update the recency		
+                recency.remove(block)		
+                recency.append(block)		
 
-        # block not in current cache		
-        else:		
+            # block not in current cache		
+            else:		
 
-            # increament miss		
-            miss += 1		
+                # increament miss		
+                miss += 1		
 
-            # if cache has no free space		
-            if len(Cache) == frame:  		
-                blockNo = np.array([i for i in Cache])		
-                # blockNo = blockNo / np.linalg.norm(blockNo)		
-                recency_ = np.array([recency.index(i) for i in Cache])		
-                # recency_ = recency_ / np.linalg.norm(recency_)		
-                frequency_ = np.array([frequency[i] for i in Cache])		
-                # frequency_ = frequency_ / np.linalg.norm(frequency_)		
-                stack = np.column_stack((recency_, frequency_)).reshape(1,frame*2)		
-                index = model.predict(stack)		
-                pred = index[0]		
+                # if cache has no free space		
+                if len(Cache) == frame:  		
+                    blockNo = np.array([i for i in Cache])		
+                    # blockNo = blockNo / np.linalg.norm(blockNo)		
+                    recency_ = np.array([recency.index(i) for i in Cache])		
+                    # recency_ = recency_ / np.linalg.norm(recency_)		
+                    frequency_ = np.array([frequency[i] for i in Cache])		
+                    # frequency_ = frequency_ / np.linalg.norm(frequency_)		
+                    stack = np.column_stack((recency_, frequency_)).reshape(1,frame*2)		
+                    index = model.predict(stack)		
+                    pred = index[0]		
 
-                evict_block = Cache[pred]		
+                    evict_block = Cache[pred]		
 
-                # remove the block with max_index from cache		
-                Cache[Cache.index(evict_block)] = block	
+                    # remove the block with max_index from cache		
+                    Cache[Cache.index(evict_block)] = block	
 
-                # remove the block with max_index from recency dict		
-                recency.remove(evict_block)	
-            else:	
-                # add block into Cache	
-                Cache.append(block)		
+                    # remove the block with max_index from recency dict		
+                    recency.remove(evict_block)	
+                else:	
+                    # add block into Cache	
+                    Cache.append(block)		
 
-            # add block into recency		
-            recency.append(block)	
-        pbar.update(1)	
+                # add block into recency		
+                recency.append(block)	
+            pbar.update(1)	
 
-# calculate hitrate	
-hitrate = hit / (hit + miss)	
-return hitrate 
+    # calculate hitrate	
+    hitrate = hit / (hit + miss)	
+    return hitrate 
