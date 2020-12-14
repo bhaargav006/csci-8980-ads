@@ -67,22 +67,23 @@ public class CacheService {
             Cache.cache.get(Cache.lookup.get(key)).setValue(value);
             return new Pair<>(key, true);
         } else {
-            putNewEntry(key, value);
-            return new Pair<>(key, false);
+            return new Pair<>(key, putNewEntry(key, value));
         }
     }
 
     /**
      * Calls evict, replaces the KV at the index returned by evict
      */
-    private synchronized void putNewEntry(String key, String value) {
+    private synchronized boolean putNewEntry(String key, String value) {
         int ind = -1;
+        boolean found = false;
 
         CacheEntry newEntry = new CacheEntry(key, value, new Timestamp(System.currentTimeMillis()));
 
         if (Cache.lookup.size() < Cache.cacheSize) {
             ind = Cache.lookup.size();
             Cache.cache.add(ind, newEntry);
+            found = true;
         } else {
             try {
                 ind = evictionPolicy.evict();
@@ -91,10 +92,11 @@ public class CacheService {
                 Cache.cache.set(ind, newEntry);
             } catch (Exception e) {
                 e.printStackTrace();
-                return;
+                return false;
             }
         }
         Cache.lookup.put(key, ind);
+        return found;
     }
 
     /**
