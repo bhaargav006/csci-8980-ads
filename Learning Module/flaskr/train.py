@@ -32,7 +32,7 @@ bp = Blueprint('train', __name__, url_prefix='/train')
 
 @bp.route('/')
 def index():
-    filename = "./../Evaluator/data/finaltrain2/0.csv"
+    filename = "./../Evaluator/data/finaltrain3/0.csv"
     blocktrace = []
     timestamp = []
 
@@ -53,8 +53,10 @@ def index():
     # Fitting Logistic Regression Model
     current_app.logger.info('Building model')
 
-    if (current_app.config['MODEL_NAME'] == 'MLP'):
+    if (current_app.config['MODEL_NAME'] == 'MLP500'):
         NN = MLPClassifier(hidden_layer_sizes=(500, ), activation='tanh', batch_size= 100, random_state=1, max_iter=300)
+    elif (current_app.config['MODEL_NAME'] == 'MLP100'):
+        NN = MLPClassifier(hidden_layer_sizes=(100, ), activation='tanh', batch_size= 100, random_state=1, max_iter=300)
     elif (current_app.config['MODEL_NAME'] == 'LOGREG'):
         NN = LogisticRegression()
     NN.fit(X_train, Y_train)
@@ -64,7 +66,7 @@ def index():
     current_app.logger.info('Accuracy of Classifier on test set: {:.2f}'.format(NN.score(X_test, Y_test)))
     current_app.logger.info('Accuracy of Classifier on train set: {:.2f}'.format(NN.score(X_train, Y_train)))
     current_app.logger.info('Hit Rate from Belady: {:.2f}'.format(hr))
-    current_app.logger.info('Hit Rate from Model: {:.2f}'.format(hitRate(blocktrace, current_app.config['CACHE_SIZE'], NN)))
+    # current_app.logger.info('Hit Rate from Model: {:.2f}'.format(hitRate(blocktrace, current_app.config['CACHE_SIZE'], NN)))
 
     dump(NN, current_app.config['MODEL_NAME'] + '.joblib')
 
@@ -171,9 +173,9 @@ def belady_opt(blocktrace, frame):
                             blockNo = np.array([i for i in Cache])
                             # blockNo = blockNo / np.linalg.norm(blockNo)
                             recency_ = np.array([recency.index(i) for i in Cache])
-                            # recency_ = recency_ / np.linalg.norm(recency_)
+                            recency_ = recency_ / np.linalg.norm(recency_)
                             frequency_ = np.array([frequency[i] for i in Cache])
-                            # frequency_ = frequency_ / np.linalg.norm(frequency_)
+                            frequency_ = frequency_ / np.linalg.norm(frequency_)
                             stack = np.column_stack((recency_, frequency_)).reshape(1,frame*2)
                             stack = np.append(stack, Cache.index(upcoming_index[max_index]))
                             dataset = np.vstack((dataset, stack))
