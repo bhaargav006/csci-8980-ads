@@ -15,12 +15,12 @@ from models.CNN2 import CNN2
 
 bp = Blueprint('predict', __name__, url_prefix='/predict')
 
-MLP = load('MLP.joblib')
+MLP = load('MLP500.joblib')
 
 LOGREG = load('LOGREG.joblib')
 
 CNN = CNN2()
-CNN.load_state_dict(torch.load('./models/CNN_2_1layer.pth', map_location='cpu'))
+CNN.load_state_dict(torch.load('./models/CNN_2_1layer_noNorm_200.pth', map_location='cpu'))
 
 @bp.route('/eviction', methods=['POST'])
 def index():
@@ -32,18 +32,20 @@ def index():
         frequency = inputTrace['frequency']
 
         blockNo = np.array(blockNo)
-        blockNo_ = blockNo / np.linalg.norm(blockNo)
+        # blockNo_ = blockNo / np.linalg.norm(blockNo)
         recency = np.array(recency)
-        recency_ = recency / np.linalg.norm(recency)
+        # recency_ = recency / np.linalg.norm(recency)
         frequency = np.array(frequency)
-        frequency_ = frequency / np.linalg.norm(frequency)
-        stack = np.column_stack((blockNo_, recency_, frequency_)).reshape(1,current_app.config['CACHE_SIZE']*3)
+        # frequency_ = frequency / np.linalg.norm(frequency)
+        stack = np.column_stack((recency, frequency)).reshape(1,current_app.config['CACHE_SIZE']*2)
     else:
         return 'Invalid Input'
 
-    if current_app.config['MODEL_NAME'] == 'MLP':
+    if current_app.config['MODEL_NAME'] == 'MLP500':
         returnVal = str(MLP.predict(stack)[0])
-    else current_app.config['MODEL_NAME'] == 'LOGREG':
+    elif current_app.config['MODEL_NAME'] == 'MLP100':
+        returnVal = str(MLP.predict(stack)[0])
+    elif current_app.config['MODEL_NAME'] == 'LOGREG':
         returnVal = str(LOGREG.predict(stack)[0])
     elif current_app.config['MODEL_NAME'] == 'CNN':
         index = CNN(torch.FloatTensor(stack))

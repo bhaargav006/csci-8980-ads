@@ -1,4 +1,4 @@
-CACHE_SIZE_LIMIT = 100
+CACHE_SIZE_LIMIT = 200
 
 class Config(object):
     CACHE_SIZE = CACHE_SIZE_LIMIT
@@ -11,4 +11,4 @@ class DevelopmentConfig(Config):
     MODEL_NAME = 'CNN'
 
 class TestingConfig(Config):
-    CACHE_SIZE = 100
+    CACHE_SIZE = 200
